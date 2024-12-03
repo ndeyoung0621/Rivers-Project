@@ -1,0 +1,16 @@
+Name,Parent,HasDams
+Columbia River,,true
+Snake River,Columbia River,true
+Yakima River,Columbia River,true
+Willamette River,Columbia River,true
+Deschutes River,Columbia River,false
+Clearwater River,Snake River,false
+Grande Ronde River,Snake River,false
+Salmon River,Snake River,false
+Tucannon River,Snake River,false
+Methow River,Yakima River,false
+Wenatchee River,Yakima River,true
+Cowlitz River,Willamette River,true
+Clackamas River,Willamette River,true
+John Day River,Deschutes River,true
+Crooked River,Deschutes River,true
