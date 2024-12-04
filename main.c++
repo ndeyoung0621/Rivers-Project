@@ -96,6 +96,35 @@ public:
         printTree(root);
     }
 
+    void searchRiver(const string& riverName) const {
+    // Check if the river exists in the map
+    auto it = nodes.find(riverName);
+
+    if (it == nodes.end()) {
+        cout << "River '" << riverName << "' not found in the tree." << endl;
+        return;
+    }
+
+    // Retrieve the river node
+    auto riverNode = it->second;
+
+    // Find the parent by searching all nodes (basic binary search-like logic)
+    string parentName = "None";
+    for (const auto& pair : nodes) {
+        auto parent = pair.second;
+        if (parent->left == riverNode || parent->right == riverNode) {
+            parentName = parent->name;
+            break;
+        }
+    }
+
+    // Print the river details
+    cout << "River: " << riverNode->name << endl;
+    cout << "Parent: " << parentName << endl;
+    cout << "Number of Dams: " << riverNode->numDams << endl;
+    cout << "Number of Tributaries: " << riverNode->numTributaries << endl;
+}
+
     void traverseTree(shared_ptr<RiverNode> node) {
         if (!node) {
             cout << "The tree is empty." << endl;
@@ -159,19 +188,24 @@ int main() {
     }
 
     while (true) {
-        cout << "Enter a command (\"traverse\", \"map\", or \"exit\"): ";
-        string userChoice;
-        cin >> userChoice;
+        cout << "Enter a command (\"traverse\", \"view map\", a river name, or \"exit\"): ";
+        string userInput;
+        getline(cin, userInput);  // Use getline to handle full river names with spaces
 
-        if (userChoice == "exit") {
+        if (userInput == "exit") {
             cout << "Exiting program. Goodbye!" << endl;
             break;
-        } else if (userChoice == "traverse") {
+        } else if (userInput == "traverse") {
             riverTree.traverseTree(riverTree.getRoot());
-        } else if (userChoice == "map") {
+        } else if (userInput == "view map") {
             riverTree.printTreeTopDown();
         } else {
-            cout << "Invalid command. Please try again." << endl;
+            // Assume user entered a river name
+            try {
+                riverTree.searchRiver(userInput);
+            } catch (const exception& e) {
+                cout << "Error during search: " << e.what() << endl;
+            }
         }
     }
 
