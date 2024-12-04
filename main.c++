@@ -4,7 +4,6 @@
 #include <string>
 #include <map>
 #include <memory>
-#include <iomanip>
 #include <stdexcept>
 
 using namespace std;
@@ -26,21 +25,19 @@ private:
     map<string, shared_ptr<RiverNode>> nodes;
 
 public:
-    // Add a river to the binary tree
     void addRiver(const string& name, const string& parent, int numDams, int numTributaries) {
         auto riverNode = make_shared<RiverNode>(name, numDams, numTributaries);
         nodes[name] = riverNode;
 
         if (parent.empty()) {
             if (!root) {
-                root = riverNode;  // Assign root if not already assigned
+                root = riverNode;
             } else {
                 throw runtime_error("Multiple root rivers are not allowed.");
             }
         } else {
             auto parentNode = nodes.find(parent);
             if (parentNode != nodes.end()) {
-                // Assign the new river as a left child or right sibling
                 if (!parentNode->second->left) {
                     parentNode->second->left = riverNode;
                 } else {
@@ -56,7 +53,6 @@ public:
         }
     }
 
-    // Read data from a CSV file and build the binary tree
     void readFromCSV(const string& filename) {
         ifstream file(filename);
         if (!file.is_open()) {
@@ -82,30 +78,71 @@ public:
         file.close();
     }
 
-    // Recursive function to print the binary tree vertically
     void printTree(shared_ptr<RiverNode> node, const string& prefix = "", bool isLeft = true) {
         if (!node) return;
 
-        // Print the current node
         cout << prefix << (isLeft ? "└── " : "├── ") << node->name
              << " (Dams: " << node->numDams << ", Tributaries: " << node->numTributaries << ")" << endl;
 
-        // Recursively print left and right children
         printTree(node->left, prefix + (isLeft ? "    " : "│   "), true);
         printTree(node->right, prefix + (isLeft ? "    " : "│   "), false);
     }
 
-    // Function to start printing the tree
     void printTreeTopDown() {
         if (!root) {
             cout << "The tree is empty." << endl;
             return;
         }
-
         printTree(root);
     }
 
-    // Getter for root
+    void traverseTree(shared_ptr<RiverNode> node) {
+        if (!node) {
+            cout << "The tree is empty." << endl;
+            return;
+        }
+
+        shared_ptr<RiverNode> current = node;
+
+        while (current) {
+            cout << "You are at: " << current->name << " (Dams: " << current->numDams
+                 << ", Tributaries: " << current->numTributaries << ")" << endl;
+
+            if (current->left) {
+                cout << "Press 'L' to go to the left tributary: " << current->left->name << endl;
+            }
+            if (current->right) {
+                cout << "Press 'R' to go to the right tributary: " << current->right->name << endl;
+            }
+            cout << "Press 'B' to go back to root or 'E' to exit traversal." << endl;
+
+            char choice;
+            cin >> choice;
+
+            if (choice == 'L' || choice == 'l') {
+                if (current->left) {
+                    current = current->left;
+                } else {
+                    cout << "No left tributary." << endl;
+                }
+            } else if (choice == 'R' || choice == 'r') {
+                if (current->right) {
+                    current = current->right;
+                } else {
+                    cout << "No right tributary." << endl;
+                }
+            } else if (choice == 'B' || choice == 'b') {
+                cout << "Returning to root." << endl;
+                current = root; // Reset to root for simplicity
+            } else if (choice == 'E' || choice == 'e') {
+                cout << "Exiting traversal." << endl;
+                break;
+            } else {
+                cout << "Invalid input. Try again." << endl;
+            }
+        }
+    }
+
     shared_ptr<RiverNode> getRoot() const {
         return root;
     }
@@ -116,9 +153,26 @@ int main() {
 
     try {
         riverTree.readFromCSV("columbiaInformation.csv");
-        riverTree.printTreeTopDown();
     } catch (const exception& e) {
         cerr << "Error: " << e.what() << endl;
+        return 1;
+    }
+
+    while (true) {
+        cout << "Enter a command (\"traverse\", \"view map\", or \"exit\"): ";
+        string userChoice;
+        cin >> userChoice;
+
+        if (userChoice == "exit") {
+            cout << "Exiting program. Goodbye!" << endl;
+            break;
+        } else if (userChoice == "traverse") {
+            riverTree.traverseTree(riverTree.getRoot());
+        } else if (userChoice == "view map") {
+            riverTree.printTreeTopDown();
+        } else {
+            cout << "Invalid command. Please try again." << endl;
+        }
     }
 
     return 0;
