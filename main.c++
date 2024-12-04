@@ -2,11 +2,10 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <vector>
 #include <map>
 #include <memory>
 #include <iomanip>
-#include <algorithm>
+#include <stdexcept>
 
 using namespace std;
 
@@ -14,19 +13,20 @@ struct RiverNode {
     string name;
     int numDams;
     int numTributaries;
-    vector<shared_ptr<RiverNode>> tributaries;
+    shared_ptr<RiverNode> left;  // Primary tributary (or first child)
+    shared_ptr<RiverNode> right; // Continuation or sibling
 
     RiverNode(const string& riverName, int dams, int tributariesCount)
-        : name(riverName), numDams(dams), numTributaries(tributariesCount) {}
+        : name(riverName), numDams(dams), numTributaries(tributariesCount), left(nullptr), right(nullptr) {}
 };
 
-class RiverTree {
+class RiverBinaryTree {
 private:
     shared_ptr<RiverNode> root;
     map<string, shared_ptr<RiverNode>> nodes;
 
 public:
-    // Add a river to the tree
+    // Add a river to the binary tree
     void addRiver(const string& name, const string& parent, int numDams, int numTributaries) {
         auto riverNode = make_shared<RiverNode>(name, numDams, numTributaries);
         nodes[name] = riverNode;
@@ -40,14 +40,23 @@ public:
         } else {
             auto parentNode = nodes.find(parent);
             if (parentNode != nodes.end()) {
-                parentNode->second->tributaries.push_back(riverNode);
+                // Assign the new river as a left child or right sibling
+                if (!parentNode->second->left) {
+                    parentNode->second->left = riverNode;
+                } else {
+                    auto sibling = parentNode->second->left;
+                    while (sibling->right) {
+                        sibling = sibling->right;
+                    }
+                    sibling->right = riverNode;
+                }
             } else {
                 throw runtime_error("Parent river '" + parent + "' not found for '" + name + "'.");
             }
         }
     }
 
-    // Read data from a CSV file and build the tree
+    // Read data from a CSV file and build the binary tree
     void readFromCSV(const string& filename) {
         ifstream file(filename);
         if (!file.is_open()) {
@@ -73,41 +82,37 @@ public:
         file.close();
     }
 
-    // Recursive function to print the tree vertically with symbols
-    void printTreeVerticallyWithSymbols(shared_ptr<RiverNode> node, const string& prefix = "", bool isLast = true) {
+    // Recursive function to print the binary tree vertically
+    void printTree(shared_ptr<RiverNode> node, const string& prefix = "", bool isLeft = true) {
         if (!node) return;
 
-        // Print the current node with the appropriate prefix
-        cout << prefix << (isLast ? "└── " : "├── ") << node->name
+        // Print the current node
+        cout << prefix << (isLeft ? "└── " : "├── ") << node->name
              << " (Dams: " << node->numDams << ", Tributaries: " << node->numTributaries << ")" << endl;
 
-        // Update the prefix for the next level
-        string newPrefix = prefix + (isLast ? "    " : "│   ");
-
-        // Recursively print each tributary
-        for (size_t i = 0; i < node->tributaries.size(); ++i) {
-            printTreeVerticallyWithSymbols(node->tributaries[i], newPrefix, i == node->tributaries.size() - 1);
-        }
+        // Recursively print left and right children
+        printTree(node->left, prefix + (isLeft ? "    " : "│   "), true);
+        printTree(node->right, prefix + (isLeft ? "    " : "│   "), false);
     }
 
-    // Function to initiate the vertical tree printing with symbols
+    // Function to start printing the tree
     void printTreeTopDown() {
         if (!root) {
             cout << "The tree is empty." << endl;
             return;
         }
 
-        printTreeVerticallyWithSymbols(root);
+        printTree(root);
     }
 
-    // Getter for root (public)
+    // Getter for root
     shared_ptr<RiverNode> getRoot() const {
         return root;
     }
 };
 
 int main() {
-    RiverTree riverTree;
+    RiverBinaryTree riverTree;
 
     try {
         riverTree.readFromCSV("columbiaInformation.csv");
