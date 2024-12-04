@@ -2,57 +2,51 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <vector>
 #include <map>
 #include <memory>
-#include <stdexcept>
+#include <iomanip>
+#include <algorithm>
 
 using namespace std;
 
 struct RiverNode {
     string name;
-    int numDams;
-    int numTributaries;
-    shared_ptr<RiverNode> left;  // Primary tributary (or first child)
-    shared_ptr<RiverNode> right; // Continuation or sibling
+    bool hasDams;
+    vector<shared_ptr<RiverNode>> tributaries;
 
-    RiverNode(const string& riverName, int dams, int tributariesCount)
-        : name(riverName), numDams(dams), numTributaries(tributariesCount), left(nullptr), right(nullptr) {}
+    RiverNode(const string& riverName, bool dams)
+        : name(riverName), hasDams(dams) {}
 };
 
-class RiverBinaryTree {
+class RiverTree {
 private:
     shared_ptr<RiverNode> root;
     map<string, shared_ptr<RiverNode>> nodes;
 
 public:
-    void addRiver(const string& name, const string& parent, int numDams, int numTributaries) {
-        auto riverNode = make_shared<RiverNode>(name, numDams, numTributaries);
+    // Add a river to the tree
+    void addRiver(const string& name, const string& parent, bool hasDams) {
+        auto riverNode = make_shared<RiverNode>(name, hasDams);
         nodes[name] = riverNode;
 
         if (parent.empty()) {
             if (!root) {
-                root = riverNode;
+                root = riverNode;  // Assign root if not already assigned
             } else {
                 throw runtime_error("Multiple root rivers are not allowed.");
             }
         } else {
             auto parentNode = nodes.find(parent);
             if (parentNode != nodes.end()) {
-                if (!parentNode->second->left) {
-                    parentNode->second->left = riverNode;
-                } else {
-                    auto sibling = parentNode->second->left;
-                    while (sibling->right) {
-                        sibling = sibling->right;
-                    }
-                    sibling->right = riverNode;
-                }
+                parentNode->second->tributaries.push_back(riverNode);
             } else {
                 throw runtime_error("Parent river '" + parent + "' not found for '" + name + "'.");
             }
         }
     }
 
+    // Read data from a CSV file and build the tree
     void readFromCSV(const string& filename) {
         ifstream file(filename);
         if (!file.is_open()) {
@@ -64,115 +58,59 @@ public:
 
         while (getline(file, line)) {
             stringstream ss(line);
-            string name, parent, numDamsStr, numTributariesStr;
+            string name, parent, hasDamsStr;
 
             getline(ss, name, ',');
             getline(ss, parent, ',');
-            getline(ss, numDamsStr, ',');
-            getline(ss, numTributariesStr, ',');
+            getline(ss, hasDamsStr, ',');
 
-            int numDams = stoi(numDamsStr);
-            int numTributaries = stoi(numTributariesStr);
-            addRiver(name, parent, numDams, numTributaries);
+            bool hasDams = (hasDamsStr == "true");
+            addRiver(name, parent, hasDams);
         }
         file.close();
     }
 
-    void printTree(shared_ptr<RiverNode> node, const string& prefix = "", bool isLeft = true) {
+    // Recursive function to print the tree vertically with symbols
+    void printTreeVerticallyWithSymbols(shared_ptr<RiverNode> node, const string& prefix = "", bool isLast = true) {
         if (!node) return;
 
-        cout << prefix << (isLeft ? "└── " : "├── ") << node->name
-             << " (Dams: " << node->numDams << ", Tributaries: " << node->numTributaries << ")" << endl;
+        // Print the current node with the appropriate prefix
+        cout << prefix << (isLast ? "└── " : "├── ") << node->name
+            << (node->hasDams ? " (D)" : "") << endl;
 
-        printTree(node->left, prefix + (isLeft ? "    " : "│   "), true);
-        printTree(node->right, prefix + (isLeft ? "    " : "│   "), false);
+        // Update the prefix for the next level
+        string newPrefix = prefix + (isLast ? "    " : "│   ");
+
+        // Recursively print each tributary
+        for (size_t i = 0; i < node->tributaries.size(); ++i) {
+            printTreeVerticallyWithSymbols(node->tributaries[i], newPrefix, i == node->tributaries.size() - 1);
+        }
     }
 
+    // Function to initiate the vertical tree printing with symbols
     void printTreeTopDown() {
         if (!root) {
             cout << "The tree is empty." << endl;
             return;
         }
-        printTree(root);
+
+        printTreeVerticallyWithSymbols(root);
     }
 
-    void traverseTree(shared_ptr<RiverNode> node) {
-        if (!node) {
-            cout << "The tree is empty." << endl;
-            return;
-        }
-
-        shared_ptr<RiverNode> current = node;
-
-        while (current) {
-            cout << "You are at: " << current->name << " (Dams: " << current->numDams
-                 << ", Tributaries: " << current->numTributaries << ")" << endl;
-
-            if (current->left) {
-                cout << "Press 'L' to go to the left tributary: " << current->left->name << endl;
-            }
-            if (current->right) {
-                cout << "Press 'R' to go to the right tributary: " << current->right->name << endl;
-            }
-            cout << "Press 'B' to go back to root or 'E' to exit traversal." << endl;
-
-            char choice;
-            cin >> choice;
-
-            if (choice == 'L' || choice == 'l') {
-                if (current->left) {
-                    current = current->left;
-                } else {
-                    cout << "No left tributary." << endl;
-                }
-            } else if (choice == 'R' || choice == 'r') {
-                if (current->right) {
-                    current = current->right;
-                } else {
-                    cout << "No right tributary." << endl;
-                }
-            } else if (choice == 'B' || choice == 'b') {
-                cout << "Returning to root." << endl;
-                current = root; // Reset to root for simplicity
-            } else if (choice == 'E' || choice == 'e') {
-                cout << "Exiting traversal." << endl;
-                break;
-            } else {
-                cout << "Invalid input. Try again." << endl;
-            }
-        }
-    }
-
+    // Getter for root (public)
     shared_ptr<RiverNode> getRoot() const {
         return root;
     }
 };
 
 int main() {
-    RiverBinaryTree riverTree;
+    RiverTree riverTree;
 
     try {
         riverTree.readFromCSV("columbiaInformation.csv");
+        riverTree.printTreeTopDown();
     } catch (const exception& e) {
         cerr << "Error: " << e.what() << endl;
-        return 1;
-    }
-
-    while (true) {
-        cout << "Enter a command (\"traverse\", \"view map\", or \"exit\"): ";
-        string userChoice;
-        cin >> userChoice;
-
-        if (userChoice == "exit") {
-            cout << "Exiting program. Goodbye!" << endl;
-            break;
-        } else if (userChoice == "traverse") {
-            riverTree.traverseTree(riverTree.getRoot());
-        } else if (userChoice == "view map") {
-            riverTree.printTreeTopDown();
-        } else {
-            cout << "Invalid command. Please try again." << endl;
-        }
     }
 
     return 0;
