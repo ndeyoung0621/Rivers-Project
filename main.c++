@@ -109,10 +109,10 @@ public:
                  << ", Tributaries: " << current->numTributaries << ")" << endl;
 
             if (current->left) {
-                cout << "Press 'L' to go to the left tributary: " << current->left->name << endl;
+                cout << "Press 'L' to go to this river's tributary: " << current->left->name << endl;
             }
             if (current->right) {
-                cout << "Press 'R' to go to the right tributary: " << current->right->name << endl;
+                cout << "Press 'R' to continue down the river: " << current->right->name << endl;
             }
             cout << "Press 'B' to go back to root or 'E' to exit traversal." << endl;
 
