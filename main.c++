@@ -12,11 +12,12 @@ using namespace std;
 
 struct RiverNode {
     string name;
-    bool hasDams;
+    int numDams;
+    int numTributaries;
     vector<shared_ptr<RiverNode>> tributaries;
 
-    RiverNode(const string& riverName, bool dams)
-        : name(riverName), hasDams(dams) {}
+    RiverNode(const string& riverName, int dams, int tributariesCount)
+        : name(riverName), numDams(dams), numTributaries(tributariesCount) {}
 };
 
 class RiverTree {
@@ -26,8 +27,8 @@ private:
 
 public:
     // Add a river to the tree
-    void addRiver(const string& name, const string& parent, bool hasDams) {
-        auto riverNode = make_shared<RiverNode>(name, hasDams);
+    void addRiver(const string& name, const string& parent, int numDams, int numTributaries) {
+        auto riverNode = make_shared<RiverNode>(name, numDams, numTributaries);
         nodes[name] = riverNode;
 
         if (parent.empty()) {
@@ -58,14 +59,16 @@ public:
 
         while (getline(file, line)) {
             stringstream ss(line);
-            string name, parent, hasDamsStr;
+            string name, parent, numDamsStr, numTributariesStr;
 
             getline(ss, name, ',');
             getline(ss, parent, ',');
-            getline(ss, hasDamsStr, ',');
+            getline(ss, numDamsStr, ',');
+            getline(ss, numTributariesStr, ',');
 
-            bool hasDams = (hasDamsStr == "true");
-            addRiver(name, parent, hasDams);
+            int numDams = stoi(numDamsStr);
+            int numTributaries = stoi(numTributariesStr);
+            addRiver(name, parent, numDams, numTributaries);
         }
         file.close();
     }
@@ -76,7 +79,7 @@ public:
 
         // Print the current node with the appropriate prefix
         cout << prefix << (isLast ? "└── " : "├── ") << node->name
-            << (node->hasDams ? " (D)" : "") << endl;
+             << " (Dams: " << node->numDams << ", Tributaries: " << node->numTributaries << ")" << endl;
 
         // Update the prefix for the next level
         string newPrefix = prefix + (isLast ? "    " : "│   ");
