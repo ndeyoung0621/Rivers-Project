@@ -159,7 +159,7 @@ int main() {
     }
 
     while (true) {
-        cout << "Enter a command (\"traverse\", \"view map\", or \"exit\"): ";
+        cout << "Enter a command (\"traverse\", \"map\", or \"exit\"): ";
         string userChoice;
         cin >> userChoice;
 
@@ -168,7 +168,7 @@ int main() {
             break;
         } else if (userChoice == "traverse") {
             riverTree.traverseTree(riverTree.getRoot());
-        } else if (userChoice == "view map") {
+        } else if (userChoice == "map") {
             riverTree.printTreeTopDown();
         } else {
             cout << "Invalid command. Please try again." << endl;
