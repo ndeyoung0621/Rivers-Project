@@ -88,6 +88,7 @@ public:
         printTree(node->right, prefix + (isLeft ? "    " : "│   "), false);
     }
 
+    //Just a catch method
     void printTreeTopDown() {
         if (!root) {
             cout << "The tree is empty." << endl;
