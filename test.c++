@@ -88,3 +88,9 @@ void runTests() {
     testTraverseTree();
     cout << "All tests completed." << endl;
 }
+/*
+int main() {
+    runTests();
+    return 0;
+}
+*/
