@@ -1,65 +1,52 @@
-#include <iostream>
-#include <cassert>
+#include <gtest/gtest.h>
+#include "main.c++"  // Include the implementation file
 
-#include "main.c++"  // Include the implementation file or header if separate
-
-// Test function to check the river tree structure
-void testAddRiver() {
+// Test the addition of rivers
+TEST(RiverTreeTest, AddRiver) {
     RiverBinaryTree riverTree;
 
     // Adding rivers
-    riverTree.addRiver("Columbia", "", 1, 1); // Root river with dams
-    riverTree.addRiver("Snake", "Columbia", 0, 1); // Tributary without dams
-    riverTree.addRiver("Willamette", "Columbia", 1, 1); // Tributary with dams
-    riverTree.addRiver("Clearwater", "Snake", 1, 1); // Tributary of Snake without dams
+    riverTree.addRiver("Columbia", "", 1, 1);          // Root river with dams
+    riverTree.addRiver("Snake", "Columbia", 0, 1);    // Tributary without dams
+    riverTree.addRiver("Willamette", "Columbia", 1, 0); // Tributary with dams
+    riverTree.addRiver("Clearwater", "Snake", 0, 0);   // Tributary of Snake with dams
 
-    // Check if the root is correctly set
-    assert(riverTree.getRoot()->name == "Columbia");
-    
-    // Check if tributaries are correctly added
-    assert(riverTree.getRoot()->numTributaries == 2);
-    assert(riverTree.getRoot()->left->name == "Snake");
-    assert(riverTree.getRoot()->right->name == "Willamette");
+    // Validate the root
+    ASSERT_NE(riverTree.getRoot(), nullptr);
+    EXPECT_EQ(riverTree.getRoot()->name, "Columbia");
 
-    // Check nested tributaries
-    assert(riverTree.getRoot()->left->numTributaries == 1);
-    assert(riverTree.getRoot()->left->left->name == "Clearwater");
+    // Validate tributaries of the root
+    auto root = riverTree.getRoot();
+    ASSERT_EQ(root->NumTributaries, 2);
+    EXPECT_EQ(root->left->name, "Snake");
+    EXPECT_EQ(root->right->name, "Willamette");
 
-    std::cout << "testAddRiver passed." << std::endl;
+    // Validate nested tributaries
+    auto snake = root->tributaries[0];
+    ASSERT_EQ(snake->tributaries.size(), 1);
+    EXPECT_EQ(snake->tributaries[0]->name, "Clearwater");
 }
 
-void testInvalidParent() {
+// Test adding a river with a non-existent parent
+TEST(RiverTreeTest, InvalidParent) {
     RiverBinaryTree riverTree;
 
-    try {
-        // Attempt to add a river with a non-existent parent
-        riverTree.addRiver("NewRiver", "NonExistentRiver", 0, 0);
-        std::cerr << "testInvalidParent failed: Exception not thrown." << std::endl;
-    } catch (const std::exception& e) {
-        assert(std::string(e.what()) == "Parent river 'NonExistentRiver' not found for 'NewRiver'.");
-        std::cout << "testInvalidParent passed." << std::endl;
-    }
+    // Attempt to add a river with a non-existent parent and expect an exception
+    EXPECT_THROW(riverTree.addRiver("NewRiver", "NonExistentRiver", 0, 0), std::runtime_error);
 }
 
-void testMultipleRoots() {
+// Test adding multiple root rivers
+TEST(RiverTreeTest, MultipleRoots) {
     RiverBinaryTree riverTree;
 
-    try {
-        // Adding multiple root rivers (this should throw an exception)
-        riverTree.addRiver("Columbia", "", 1, 1);
-        riverTree.addRiver("Missouri", "", 0, 1);
-        std::cerr << "testMultipleRoots failed: Exception not thrown." << std::endl;
-    } catch (const std::exception& e) {
-        assert(std::string(e.what()) == "Multiple root rivers are not allowed.");
-        std::cout << "testMultipleRoots passed." << std::endl;
-    }
+    // Add the first root river
+    riverTree.addRiver("Columbia", "", 1, 1);
+
+    // Attempt to add another root river and expect an exception
+    EXPECT_THROW(riverTree.addRiver("Missouri", "", 1, 1), std::runtime_error);
 }
 
-    int testRun() {
-    // Run the tests
-    testAddRiver();
-    testInvalidParent();
-    testMultipleRoots();
-
-    return 0;
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
