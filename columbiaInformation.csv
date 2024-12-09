@@ -1,4 +1,4 @@
-Name,Parent,NumDams, NumTributaries
+Name,Parent,NumDams,NumTributaries
 Columbia River,,27,25
 Kootenai,Columbia River,4,18
 Pend Orielle,Columbia River,5,15
@@ -12,9 +12,9 @@ Spokane,Columbia River,7,3
 Okanogan,Columbia River,2,5
 Yakima,Columbia River,5,8
 Snake,Columbia River,22,15
-Clearwater River,Snake,0,0
-Salmon River,Snake,0,0
-Boise River,Snake,0,0
+Clearwater River,Snake,1,4
+Salmon River,Snake,2,6
+Boise River,Snake,3,5
 Walla Walla,Columbia River,4,2
 Umatilla,Columbia River,0,8
 Willow Creek,Columbia River,0,0
@@ -24,3 +24,12 @@ Klickitat,Columbia River,16,7
 Willamette,Columbia River,13,10
 Lewis,Columbia River,3,3
 Cowlitz,Columbia River,4,7
+Payette,Snake,2,4
+Grande Ronde,Snake,1,3
+Imnaha,Snake,0,2
+Lemhi,Salmon River,0,1
+Challis Creek,Salmon River,0,2
+Big Wood River,Boise River,2,3
+Middle Fork Clearwater,Clearwater River,1,3
+Lochsa,Clearwater River,0,2
+Selway,Clearwater River,0,2
