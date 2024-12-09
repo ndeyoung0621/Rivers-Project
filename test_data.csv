@@ -1,0 +1,4 @@
+Name, Parent, Dams, Tributaries
+Columbia, , 10, 5
+Snake, Columbia, 8, 3
+Yakima, Columbia, 4, 2
